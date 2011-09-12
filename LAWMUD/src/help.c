@@ -44,8 +44,9 @@ char *read_help_entry(const char *helpfile)
   memset(sql, '\0', MAX_BUFFER);
 
   /* prepare sql to query helplkup table */
-  snprintf(sql, MAX_BUFFER, "select help.contents from help inner join helplkup on helplkup.helpid = help.id where helplkup.keyword = '%s';", helpfile);
+  snprintf(sql, MAX_BUFFER, "select help.contents from help inner join helplkup on helplkup.helpid = help.id where helplkup.keyword = ?");
   sqlite3_prepare_v2(db, sql, sizeof(sql), &rSet, NULL);
+  sqlite3_bind_text(rSet, 1, helpfile, strlen(helpfile), 0);
 
   /* execute query and return NULL if help isn't found*/
   if (sqlite3_step(rSet) != SQLITE_ROW)

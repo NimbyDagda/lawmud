@@ -46,8 +46,9 @@ void load_rooms(D_AREA *area)
 
   memset(sql, '\0', sizeof(sql));
 
-  snprintf(sql, sizeof(sql), "select * from rooms where areaid = %d;", area->aid);
+  snprintf(sql, sizeof(sql), "select * from rooms where areaid = ?");
   sqlite3_prepare_v2(db, sql, sizeof(sql), &rSet, NULL);
+  sqlite3_bind_int(rSet, 1, area->aid);
   while (sqlite3_step(rSet) == SQLITE_ROW)
   {
     if ((new_room = malloc(sizeof(*new_room))) == NULL) {
@@ -88,8 +89,9 @@ void link_rooms()
     while ((dRoom = (D_ROOM *) NextInList(&rIter)) !=NULL)
     {
       memset(sql, '\0', sizeof(sql));
-      snprintf(sql, sizeof(sql), "select * from rooms where id = %d;", dRoom->rid);
+      snprintf(sql, sizeof(sql), "select * from rooms where id = ?");
       sqlite3_prepare_v2(db, sql, 40, &rSet, NULL);
+      sqlite3_bind_int(rSet, 1, dRoom->rid);
       rc = sqlite3_step(rSet); /* TODO: Need to really check this in case room has ceased to be */
       for ( i = COL_NORTH ; i <= COL_DOWN; i++) {
         id = sqlite3_column_int(rSet,i);

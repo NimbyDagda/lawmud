@@ -27,8 +27,9 @@ void save_player(D_MOBILE *dMob)
   pName[i] = '\0';
 
   /* prepare sql to query player table */
-  snprintf(sql, MAX_BUFFER, "select * from players where name = '%s';", pName);
+  snprintf(sql, MAX_BUFFER, "select * from players where name = ?");
   sqlite3_prepare_v2(db, sql, sizeof(sql), &rSet, NULL);
+  sqlite3_bind_text(rSet, 1, pName, strlen(pName), 0);
 
   rc = sqlite3_step(rSet);
   sqlite3_reset(rSet);
@@ -36,8 +37,13 @@ void save_player(D_MOBILE *dMob)
 
   /* existing player */
   if (rc == SQLITE_ROW) {
-	  snprintf(sql, MAX_BUFFER, "update players set name = '%s', password = '%s', level = %d, room = %d where name = '%s';", dMob->name, dMob->password, dMob->level, dMob->room->rid, pName);
+	  snprintf(sql, MAX_BUFFER, "update players set name = ?, password = ?, level = ?, room = ? where name = ?");
 	  sqlite3_prepare_v2(db, sql, sizeof(sql), &rSet, NULL);
+          sqlite3_bind_text(rSet, 1, dMob->name, strlen(dMob->name), 0);
+          sqlite3_bind_text(rSet, 2, dMob->password, strlen(dMob->password), 0);
+          sqlite3_bind_int(rSet, 3, dMob->level);
+          sqlite3_bind_int(rSet, 4, dMob->room->rid);
+          sqlite3_bind_text(rSet, 5, pName, strlen(pName), 0);
 	  if (sqlite3_step(rSet) != SQLITE_DONE) {
 		  log_string(sql);
 		  log_string(sqlite3_errmsg(db));
@@ -48,8 +54,12 @@ void save_player(D_MOBILE *dMob)
   }
   /* new player */
   else if (rc == SQLITE_DONE) {
-	  snprintf(sql, MAX_BUFFER, "insert into players (name, password, level, room, id) values ('%s', '%s', %d, %d, NULL);", dMob->name, dMob->password, dMob->level, dMob->room->rid);
+	  snprintf(sql, MAX_BUFFER, "insert into players (name, password, level, room, id) values (?, ?, ?, ?, NULL)");
 	  sqlite3_prepare_v2(db, sql, sizeof(sql), &rSet, NULL);
+          sqlite3_bind_text(rSet, 1, dMob->name, strlen(dMob->name), 0);
+          sqlite3_bind_text(rSet, 2, dMob->password, strlen(dMob->password), 0);
+          sqlite3_bind_int(rSet, 3, dMob->level);
+          sqlite3_bind_int(rSet, 4, dMob->room->rid);
 	  if (sqlite3_step(rSet) != SQLITE_DONE) {
 		  log_string(sql);
 		  log_string(sqlite3_errmsg(db));
@@ -77,8 +87,9 @@ D_MOBILE *load_player(char *player)
   pName[i] = '\0';
 
   /* prepare sql to query player table */
-  snprintf(sql, MAX_BUFFER, "select * from players where name = '%s';", pName);
+  snprintf(sql, MAX_BUFFER, "select * from players where name = ?");
   sqlite3_prepare_v2(db, sql, sizeof(sql), &rSet, NULL);
+  sqlite3_bind_text(rSet, 1, pName, strlen(pName), 0);
 
   /* execute query and return NULL if player isn't found*/
   if (sqlite3_step(rSet) != SQLITE_ROW)
@@ -141,8 +152,9 @@ D_MOBILE *load_profile(char *player)
   pName[i] = '\0';
 
   /* prepare sql to query player table */
-  snprintf(sql, MAX_BUFFER, "select name, password from players where name = '%s';", pName);
+  snprintf(sql, MAX_BUFFER, "select name, password from players where name = ?");
   sqlite3_prepare_v2(db, sql, sizeof(sql), &rSet, NULL);
+  sqlite3_bind_text(rSet, 1, pName, strlen(pName), 0);
 
   /* execute query and return NULL if player isn't found*/
   if (sqlite3_step(rSet) != SQLITE_ROW)
